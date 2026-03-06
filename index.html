@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Smart URL Notepad</title>
+
+<script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
+
+<style>
+body{margin:0;font-family:Arial;background:#1e1e1e;color:white}
+header{background:#111;padding:14px;text-align:center;font-size:20px;font-weight:bold}
+textarea{
+  width:100%;
+  height:calc(100vh - 55px);
+  background:#1e1e1e;
+  color:white;
+  border:none;
+  outline:none;
+  padding:15px;
+  font-size:16px;
+  resize:none;
+  box-sizing:border-box;
+}
+</style>
+</head>
+
+<body>
+
+<header>⚡ Smart URL Notepad</header>
+<textarea id="note" placeholder="Start typing..."></textarea>
+
+<script>
+const textarea = document.getElementById("note");
+
+const encoder = new TextEncoder();
+const decoder = new TextDecoder();
+
+const keyString = "0123456789abcdef0123456789abcdef";
+let lastSaved = "";
+
+// Crypto key
+async function getKey(){
+  return crypto.subtle.importKey(
+    "raw",
+    encoder.encode(keyString),
+    {name:"AES-GCM"},
+    false,
+    ["encrypt","decrypt"]
+  );
+}
+
+// Base64 helpers
+function toBase64(buffer){
+  return btoa(String.fromCharCode(...new Uint8Array(buffer)))
+    .replace(/\+/g,'-')
+    .replace(/\//g,'_')
+    .replace(/=+$/,'');
+}
+
+function fromBase64(str){
+  str = str.replace(/-/g,'+').replace(/_/g,'/');
+  const binary = atob(str);
+  return Uint8Array.from(binary, c => c.charCodeAt(0));
+}
+
+// 🔐 Encrypt
+async function encrypt(text){
+  const key = await getKey();
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+
+  const encrypted = await crypto.subtle.encrypt(
+    {name:"AES-GCM", iv},
+    key,
+    encoder.encode(text)
+  );
+
+  const combined = new Uint8Array(iv.length + encrypted.byteLength);
+  combined.set(iv);
+  combined.set(new Uint8Array(encrypted), iv.length);
+
+  return "e" + toBase64(combined); // mark as encrypted
+}
+
+// 🔓 Decrypt
+async function decrypt(data){
+  try{
+    const key = await getKey();
+    const bytes = fromBase64(data);
+
+    const iv = bytes.slice(0,12);
+    const encrypted = bytes.slice(12);
+
+    const decrypted = await crypto.subtle.decrypt(
+      {name:"AES-GCM", iv},
+      key,
+      encrypted
+    );
+
+    return decoder.decode(decrypted);
+  }catch{
+    return "";
+  }
+}
+
+// Load from URL
+(async ()=>{
+  const hash = location.hash.slice(1);
+  if(!hash) return;
+
+  // e = encrypted
+  if(hash.startsWith("e")){
+    textarea.value = await decrypt(hash.slice(1));
+  } else {
+    textarea.value = LZString.decompressFromEncodedURIComponent(hash) || "";
+  }
+
+  lastSaved = textarea.value;
+})();
+
+// Autosave
+setInterval(async () => {
+
+  const text = textarea.value;
+  if(text === lastSaved) return;
+  lastSaved = text;
+
+  if(!text){
+    location.hash = "";
+    return;
+  }
+
+  // ⭐ Compress first
+  const compressed = LZString.compressToEncodedURIComponent(text);
+
+  let result;
+
+  // ⭐ If short enough → use plain compressed
+  if(compressed.length < 80){
+    result = compressed;
+  } else {
+    result = await encrypt(text);
+  }
+
+  location.hash = result;
+
+}, 500);
+
+</script>
+
+</body>
+</html>
