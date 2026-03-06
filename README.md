@@ -25,16 +25,16 @@ A lightweight single-page notepad that saves your note in the URL hash.
 
 ## Deploy to GitHub Pages
 
-This repo already includes a workflow file:
-
-- `.github/workflows/deploy-pages.yml`
+Use direct branch deployment (no GitHub Actions needed).
 
 ### First-time setup
 
 1. Push the project to GitHub.
 2. Open `Settings` > `Pages` in your repository.
-3. Under `Build and deployment`, set `Source` to `GitHub Actions`.
-4. Push any commit to `master` (or run the workflow manually from `Actions`).
+3. Under `Build and deployment`:
+	`Source` -> `Deploy from a branch`
+4. Select branch `master` and folder `/(root)`.
+5. Click `Save`.
 
 ### Live URL
 
@@ -42,18 +42,18 @@ This repo already includes a workflow file:
 
 ### Redeploy behavior
 
-- Every push to `master` triggers a new Pages deployment automatically.
+- Every push to `master` updates the site automatically.
 
 ### If you see a 404
 
-- Confirm Pages `Source` is set to `GitHub Actions`.
-- Check the `Actions` tab and wait until the deployment workflow is green.
-- Refresh after 1-2 minutes (first deploy can take a bit longer).
+- Confirm Pages source is `Deploy from a branch`.
+- Confirm branch is `master` and folder is `/(root)`.
+- Wait 1-2 minutes, then refresh.
 
 ## Project Files
 
 - `index.html`: Main app (HTML, CSS, JS)
-- `.github/workflows/deploy-pages.yml`: GitHub Pages deployment workflow
+- `.nojekyll`: Prevents Jekyll processing on GitHub Pages
 
 ## Notes
 
