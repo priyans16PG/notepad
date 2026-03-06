@@ -23,6 +23,19 @@ A lightweight single-page notepad that stores your note in the URL hash.
 2. Start typing in the editor.
 3. Your note is automatically saved in the URL hash.
 
+## Deploy on GitHub Pages
+
+This repository includes a GitHub Actions workflow at `.github/workflows/deploy-pages.yml`.
+
+1. Push this project to GitHub.
+2. Open repository `Settings` > `Pages`.
+3. In `Build and deployment`, set `Source` to `GitHub Actions`.
+4. Push to the `master` branch (or run the workflow manually from `Actions`).
+5. Your site will be published at:
+	`https://priyans16PG.github.io/notepad/`
+
+After each push to `master`, GitHub Pages redeploys automatically.
+
 ## Project Files
 
 - `index.html` - Main application file (HTML, CSS, JS)
