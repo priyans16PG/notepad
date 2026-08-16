@@ -1,4 +1,4 @@
-# Smart URL Notepad (vibe coded fully)
+# Smart URL Notepad 
 
 A lightweight single-page notepad that saves your note in the URL hash.
 
